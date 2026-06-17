@@ -293,6 +293,7 @@ this.wrongSound = new Audio("./js/error.mp3");
     const message = document.createElement("div");
     message.classList.add("time-up-message");
     message.textContent = "TIME'S UP!";
+    this.checkAnswer();
 
     this.container.appendChild(message);
 
