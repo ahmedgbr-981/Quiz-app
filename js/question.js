@@ -55,8 +55,6 @@
 
 import { startQuiz } from "./index.js";
 
-
-
 export default class Question {
   // TODO: Create constructor(quiz, container, onQuizEnd)
   // 1. Store the three parameters
@@ -90,7 +88,8 @@ export default class Question {
     this.timeRemaining = 15;
 
     this.correctSound = new Audio("./js/correct.mp3");
-this.wrongSound = new Audio("./js/error.mp3");
+    this.wrongSound = new Audio("./js/error.mp3");
+    this.timeSound = new Audio("./js/time.mp3");
   }
 
   // TODO: Create decodeHtml(html) method
@@ -137,15 +136,13 @@ this.wrongSound = new Audio("./js/error.mp3");
   // 5. Call this.startTimer()
   displayQuestion() {
     let shuffledAnswers = this.shuffleAnswers();
-    let ansHTML=``
-    shuffledAnswers.forEach(
-      (ans,i)=>{
-        ansHTML+=`<button class="answer-btn" data-answer="${ans}">
+    let ansHTML = ``;
+    shuffledAnswers.forEach((ans, i) => {
+      ansHTML += `<button class="answer-btn" data-answer="${ans}">
       <span class="answer-key">${i + 1}</span>
       <span class="answer-text">${ans}</span>
-    </button>`
-      }
-    )
+    </button>`;
+    });
     let box = ``;
     box += `<div class="game-card question-card">
       
@@ -250,9 +247,10 @@ this.wrongSound = new Audio("./js/error.mp3");
     this.timerInterval = setInterval(() => {
       this.timeRemaining--;
       timer.textContent = this.timeRemaining;
-      if (this.timeRemaining <= 10) {
+      if (this.timeRemaining <= 5) {
         document.getElementById("timer").classList.remove("timer");
         document.getElementById("timer").classList.add("warning");
+        this.timeSound.play();
       }
       if (this.timeRemaining <= 0) {
         this.stopTimer();
@@ -274,33 +272,35 @@ this.wrongSound = new Audio("./js/error.mp3");
   // 4. Show "TIME'S UP!" message
   // 5. Call animateQuestion() after a delay
   handleTimeUp() {
-    // 1. Mark as answered
+    if (this.answered) return;
+
     this.answered = true;
 
-    // 2. Remove keyboard listeners
     this.removeEventListeners();
 
-    // 3. Show correct answer
+    this.wrongSound.currentTime = 0;
+    this.wrongSound.play();
+     this.highlightCorrectAnswer();
+
     const buttons = document.querySelectorAll(".answer-btn");
 
     buttons.forEach((button) => {
-      if (button.textContent === this.correctAnswer) {
+      if (
+        button.dataset.answer.toLowerCase() === this.correctAnswer.toLowerCase()
+      ) {
         button.classList.add("correct");
       }
+
+      button.classList.add("disabled");
     });
 
-    // 4. Show TIME'S UP message
     const message = document.createElement("div");
     message.classList.add("time-up-message");
     message.textContent = "TIME'S UP!";
-    this.checkAnswer();
 
     this.container.appendChild(message);
 
-    // 5. Move to next question after delay
-    setTimeout(() => {
-      this.animateQuestion();
-    }, 1000);
+    this.animateQuestion();
   }
   // TODO: Create checkAnswer(choiceElement) method
   // 1. If already answered, return early
@@ -356,25 +356,22 @@ this.wrongSound = new Audio("./js/error.mp3");
   getNextQuestion() {
     if (this.quiz.nextQuestion()) {
       const nextQuestion = new Question(
-        this.quiz, 
+        this.quiz,
         this.container,
-         this.onQuizEnd
-        );
+        this.onQuizEnd,
+      );
       nextQuestion.displayQuestion();
-    }
-   else{
-     this.container.innerHTML = this.quiz.endQuiz();
-  
-    document.getElementById('btn-restart').addEventListener("click", () => {
-      document.getElementById('btn-restart').classList.add('hidden')
-      
-      document.querySelector('.new-record-badge').classList.add('hidden');
-      this.onQuizEnd();
-    });
-   }
-  }
+    } else {
+      this.container.innerHTML = this.quiz.endQuiz();
 
- 
+      document.getElementById("btn-restart").addEventListener("click", () => {
+        document.getElementById("btn-restart").classList.add("hidden");
+
+        document.querySelector(".new-record-badge").classList.add("hidden");
+        this.onQuizEnd();
+      });
+    }
+  }
 
   // TODO: Create animateQuestion(duration) method
   // 1. Wait for 1500ms (transition delay)
