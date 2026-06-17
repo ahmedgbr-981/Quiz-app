@@ -67,31 +67,24 @@ export default class Question {
   // 6. Shuffle all answers
   // 7. Initialize: answered = false, timerInterval = null, timeRemaining
   constructor(quiz, container, onQuizEnd) {
-    // 1. Store parameters
     this.quiz = quiz;
     this.container = container;
     this.onQuizEnd = onQuizEnd;
 
-    // 2. Get current question data
     this.questionData = quiz.getCurrentQuestion();
 
-    // 3. Store current index
     this.index = quiz.currentQuestionIndex;
 
-    // 4. Decode and store values
     this.question = this.decodeHtml(this.questionData.question);
     this.correctAnswer = this.decodeHtml(this.questionData.correct_answer);
     this.category = this.decodeHtml(this.questionData.category);
 
-    // 5. Decode wrong answers
     this.wrongAnswers = this.questionData.incorrect_answers.map((answer) =>
       this.decodeHtml(answer),
     );
 
-    // 6. Create and shuffle all answers
     this.allAnswers = [this.correctAnswer, ...this.wrongAnswers];
     this.allAnswers = this.allAnswers.sort(() => Math.random() - 0.5);
-    // 7. Initialize state
     this.answered = false;
     this.timerInterval = null;
     this.timeRemaining = 15;
